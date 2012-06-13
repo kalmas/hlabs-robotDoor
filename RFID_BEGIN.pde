@@ -1,4 +1,4 @@
-int RFIDResetPin = 13;
+int RFIDResetPin = 9;
 
 //Register your RFID tags here
 char tag1[13] = "4B00DA49A971";
@@ -27,8 +27,8 @@ void setup(){
   pinMode(7, OUTPUT);
   pinMode(8, OUTPUT);
   pinMode(9, OUTPUT);
-  pinMode(10, OUTPUT);
-  pinMode(11, OUTPUT);
+  //pinMode(10, OUTPUT);
+  //pinMode(11, OUTPUT);
 }
 
 void loop(){
@@ -91,11 +91,11 @@ void checkTag(char tag[]){
   }else if(compareTag(tag, tag8)){
     lightLED(9);
 
-  }else if(compareTag(tag, tag9)){
-    lightLED(10);
+  //}else if(compareTag(tag, tag9)){
+   // lightLED(10);
 
-  }else if(compareTag(tag, tag10)){
-    lightLED(11);
+ // }else if(compareTag(tag, tag10)){
+    //lightLED(11);
 
   }else{
     Serial.println(tag); //read out any unknown tag
