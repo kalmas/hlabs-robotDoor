@@ -4,3 +4,4 @@ With uno and eshield stacked send request to www.arduino.cc and print response t
 
 Log:
 =========
+6/30 Repeating request to www.arduino.cc every 15 seconds.

@@ -29,19 +29,20 @@ byte mac[] = {
   0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 // fill in an available IP address on your network here,
 // for manual configuration:
-IPAddress ip(10,0,0,20);
+// IPAddress ip(10,0,0,20);
 
 // fill in your Domain Name Server address here:
-IPAddress myDns(1,1,1,1);
+// IPAddress myDns(1,1,1,1);
 
 // initialize the library instance:
 EthernetClient client;
 
-char server[] = "www.arduino.cc";
+char server[] = "192.168.1.117";
+int port = 8888;
 
 unsigned long lastConnectionTime = 0;          // last time you connected to the server, in milliseconds
 boolean lastConnected = false;                 // state of the connection last time through the main loop
-const unsigned long postingInterval = 60*1000;  // delay between updates, in milliseconds
+const unsigned long postingInterval = 15*1000;  // delay between updates, in milliseconds
 
 void setup() {
   // start serial port:
@@ -49,7 +50,7 @@ void setup() {
   // give the ethernet module time to boot up:
   delay(1000);
   // start the Ethernet connection using a fixed IP address and DNS server:
-  Ethernet.begin(mac, ip, myDns);
+  Ethernet.begin(mac);
   // print the Ethernet board/shield's IP address:
   Serial.print("My IP address: ");
   Serial.println(Ethernet.localIP());
@@ -74,9 +75,12 @@ void loop() {
 
   // if you're not connected, and ten seconds have passed since
   // your last connection, then connect again and send data:
-  if(!client.connected() && (millis() - lastConnectionTime > postingInterval)) {
+  if(!client.connected() && ((millis() - lastConnectionTime > postingInterval) || lastConnectionTime == 0)) {
+    Serial.println("ok");
     httpRequest();
+    Serial.println("done");
   }
+  
   // store the state of the connection for next time through
   // the loop:
   lastConnected = client.connected();
@@ -85,7 +89,7 @@ void loop() {
 // this method makes a HTTP connection to the server:
 void httpRequest() {
   // if there's a successful connection:
-  if (client.connect(server, 80)) {
+  if (client.connect(server, port)) {
     Serial.println("connecting...");
     // send the HTTP PUT request:
     client.println("GET /latest.txt HTTP/1.1");
