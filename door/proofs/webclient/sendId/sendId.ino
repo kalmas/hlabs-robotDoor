@@ -6,7 +6,7 @@ int RFIDResetPin = 9;
 
 // webclient variables
 byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
-char server[] = "192.168.1.117";
+char server[] = "192.168.1.108";
 int port = 8888;
 unsigned long lastConnectionTime = 0;  // last time you connected to the server, in milliseconds
 boolean lastConnected = false; // state of the connection last time through the main loop
@@ -59,29 +59,35 @@ void loop() {
 
     if(reading && readByte != 2 && readByte != 10 && readByte != 13){
       //store the tag
+      Serial.println(readByte);
       tagString[index] = readByte;
       index ++;
     }
   }
+  Serial.println("array");
+  Serial.println(tagString);
 
   if(index > 0) {
     httpRequest(tagString);
-	clearTag(tagString); // clear the char of all value
+    clearTag(tagString); // clear the char of all value
     resetReader(); // reset the RFID reader
   }
   
   // store the state of the connection for next time through the loop
   lastConnected = client.connected();
+  //Serial.println("3");
+  //Serial.println(tagString);
 }
 
 // this method makes a HTTP connection to the server:
-void httpRequest(char tag[]) {
+void httpRequest(char tagString[]) {
+  Serial.println("here");
   // if there's a successful connection:
   if (client.connect(server, port)) {
-    Serial.println("connecting...");
     // send the HTTP GET
-	String request = "GET /open?q=" + tag + " HTTP/1.1":
-    client.println(request);
+    client.print("GET /open?q=");
+    client.print(tagString);
+    client.println(" HTTP/1.1");
     client.println("User-Agent: arduino-ethernet");
     client.println("Connection: close");
     client.println();
@@ -111,9 +117,9 @@ void clearTag(char one[]){
 //clear the char array by filling with null - ASCII 0
 //Will think same tag has been read otherwise
 ///////////////////////////////////
-  for(int i = 0; i < strlen(one); i++){
+   for(int i = 0; i < strlen(one); i++){
     one[i] = 0;
-  }
+   }
 }
 
 
