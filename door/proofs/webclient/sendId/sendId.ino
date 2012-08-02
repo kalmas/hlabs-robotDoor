@@ -33,7 +33,7 @@ void setup() {
 }
 
 void loop() {
-  char tagString[13];
+  char tagString[11];
   int index = 0;
   boolean reading = false;
   
@@ -87,8 +87,12 @@ void httpRequest(char tagString[]) {
   delay(1000);
   // if there's a successful connection:
   if (client.connect(server, port)) {
+    Serial.println("requesting");
     // send the HTTP GET
-    client.println("GET /opensesame HTTP/1.1");
+    char req[33] = {'G', 'E', 'T', ' ', '/', 'o', 'p', 'e', 'n', '?', 'q', '=', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', ' ', 'H', 'T', 'T', 'P', '/', '1', '.', '1'};
+    client.println(req);
+    
+    //client.println("GET /opensesame?q= HTTP/1.1");
     // client.print(tagString);
     // client.println(" HTTP/1.1");
     client.println("User-Agent: arduino-ethernet");
