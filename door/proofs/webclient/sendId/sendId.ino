@@ -46,7 +46,7 @@ void loop() {
   // through the loop, then stop the client:
   if (!client.connected() && lastConnected) {
     Serial.println();
-    Serial.println("disconnecting.");
+    Serial.println("CLOSING CONNECTION");
     client.stop();
   }
   
@@ -64,8 +64,9 @@ void loop() {
       index ++;
     }
   }
-  Serial.println("array");
-  Serial.println(tagString);
+  // Serial.println("array");
+  // Serial.println(tagString);
+  delay(1000);
 
   if(index > 0) {
     httpRequest(tagString);
@@ -81,13 +82,15 @@ void loop() {
 
 // this method makes a HTTP connection to the server:
 void httpRequest(char tagString[]) {
-  Serial.println("here");
+  Serial.println("in httpRequest");
+  Serial.println(tagString);
+  delay(1000);
   // if there's a successful connection:
   if (client.connect(server, port)) {
     // send the HTTP GET
-    client.print("GET /open?q=");
-    client.print(tagString);
-    client.println(" HTTP/1.1");
+    client.println("GET /opensesame HTTP/1.1");
+    // client.print(tagString);
+    // client.println(" HTTP/1.1");
     client.println("User-Agent: arduino-ethernet");
     client.println("Connection: close");
     client.println();
@@ -97,8 +100,7 @@ void httpRequest(char tagString[]) {
   } 
   else {
     // if you couldn't make a connection:
-    Serial.println("connection failed");
-    Serial.println("disconnecting.");
+    Serial.println("CONNECTION FAILED");
     client.stop();
   }
 }
