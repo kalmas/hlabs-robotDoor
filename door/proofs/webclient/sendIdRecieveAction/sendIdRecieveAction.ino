@@ -15,7 +15,6 @@ EthernetClient client;
 
 // lock open variables
 int lockOpenPin = 2;
-boolean lockOpen = false;
 
 void setup() {
   Serial.begin(9600);
@@ -33,80 +32,79 @@ void setup() {
   
   // lock open setup
   pinMode(lockOpenPin, OUTPUT);
-  
 }
 
 void loop() {
-  char tagString[11];
-  int index = 0;
+  String tagString = "";
   boolean reading = false;
+  boolean lockOpen = false;
+  String responseStr = "";
   
-  // if there's incoming data on net, send it out the serial port
+  // check incoming net data
   while(client.available()){
     char c = client.read();
     Serial.print(c);
-    lockOpen = true;
+    
+    if (c != '\n'){
+      responseStr += c;
+    } else {
+      if (responseStr == "Action: OpenDoorLock"){
+        lockOpen = true;
+        // break;
+      }
+      responseStr = "";      
+    }
   }
+
   if (lockOpen){
+    Serial.print("Door Open");
     digitalWrite(lockOpenPin, HIGH);
     delay(2000);
+    Serial.print("Door Close");
     digitalWrite(lockOpenPin, LOW);
     lockOpen = false;
   }
   
-  // if there's no net connection, but there was one last time
-  // through the loop, then stop the client:
+  // if there's no net connection but there was one last time, stop the client
   if (!client.connected() && lastConnected) {
     Serial.println();
     Serial.println("CLOSING CONNECTION");
     client.stop();
   }
   
-  // if there's incoming data on serial, send it out the serial port
+  // if there's incoming data on serial, read in tagString
   while(Serial.available()){
-    int readByte = Serial.read(); //read next available byte
-
+    int readByte = Serial.read();
     if(readByte == 2) reading = true; //begining of tag
     if(readByte == 3) reading = false; //end of tag
 
     if(reading && readByte != 2 && readByte != 10 && readByte != 13){
       //store the tag
       Serial.println(readByte);
-      tagString[index] = readByte;
-      index ++;
+      tagString += readByte;
     }
   }
-  // Serial.println("array");
-  // Serial.println(tagString);
+  
+  // seems like a delay here is required
   delay(1000);
-
-  if(index > 0) {
-    httpRequest(tagString);
-    clearTag(tagString); // clear the char of all value
-    resetReader(); // reset the RFID reader
-  }
+  
+  httpRequest(tagString); // send http request
+  resetReader(); // reset the RFID reader
   
   // store the state of the connection for next time through the loop
   lastConnected = client.connected();
-  //Serial.println("3");
-  //Serial.println(tagString);
 }
 
-// this method makes a HTTP connection to the server:
-void httpRequest(char tagString[]) {
-  Serial.println("in httpRequest");
-  Serial.println(tagString);
+void httpRequest(String tagString) {
+  String requestStr = "GET /open?q=";
+  requestStr += tagString;
+  requestStr += " HTTP/1.1";
+  
   delay(1000);
-  // if there's a successful connection:
   if (client.connect(server, port)) {
-    Serial.println("requesting");
-    // send the HTTP GET
-    char req[33] = {'G', 'E', 'T', ' ', '/', 'o', 'p', 'e', 'n', '?', 'q', '=', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', ' ', 'H', 'T', 'T', 'P', '/', '1', '.', '1'};
-    client.println(req);
-    
-    //client.println("GET /opensesame?q= HTTP/1.1");
-    // client.print(tagString);
-    // client.println(" HTTP/1.1");
+    Serial.println(requestStr);
+    // Send HTTP GET
+    client.println(requestStr);
     client.println("User-Agent: arduino-ethernet");
     client.println("Connection: close");
     client.println();
@@ -122,23 +120,17 @@ void httpRequest(char tagString[]) {
 }
 
 void resetReader(){
-///////////////////////////////////
-//Reset the RFID reader to read again.
-///////////////////////////////////
+  //Reset the RFID reader to read again.
   digitalWrite(RFIDResetPin, LOW);
   digitalWrite(RFIDResetPin, HIGH);
   delay(150);
 }
 
-void clearTag(char one[]){
-///////////////////////////////////
-//clear the char array by filling with null - ASCII 0
-//Will think same tag has been read otherwise
-///////////////////////////////////
-   for(int i = 0; i < strlen(one); i++){
-    one[i] = 0;
-   }
-}
+//void clearTag(char tagString[]){/
+//   for(int i = 0; i < strlen(tagString); i++){
+//    tagString[i] = ' ';
+//   }
+//}
 
 
 
