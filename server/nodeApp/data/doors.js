@@ -1,0 +1,1 @@
+{"doors":[{"id":"front", "status":"open"}]}
