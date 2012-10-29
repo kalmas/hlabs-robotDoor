@@ -4,15 +4,16 @@
 // Enter a MAC address for your controller below.
 // Newer Ethernet shields have a MAC address printed on a sticker on the shield
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-IPAddress server(192,168,1,109); // me
+// Enter server IP
+IPAddress server(10,0,1,31);
 
 EthernetClient client;
 
-int RFIDResetPin = 13;
+int RFIDResetPin = 9;
 
 void setup(){
 	Serial.begin(9600);
-    pinMode(RFIDResetPin, OUTPUT);
+        pinMode(RFIDResetPin, OUTPUT);
 	digitalWrite(RFIDResetPin, HIGH);
 
 	// start the Ethernet connection:
@@ -29,10 +30,16 @@ void setup(){
 }
 
 void loop(){
-	char tagString[13];
+	char tagString[10];
+        clearTag(tagString);
 	int index = 0;
 	boolean reading = false;
 	
+        /* 
+         * Establish connection to server on specified port
+         * or abort
+         */
+        delay(1000);
 	if (!client.connected()) {
 		if (client.connect(server, 8888)) {
 			// Serial.println("connected");
@@ -45,11 +52,13 @@ void loop(){
 		}
 	}
 
+        /*
+         * If there data coming in from serial, store as a rfid tag
+         */
 	while(Serial.available()){
-		Serial.println("here2");
 		int readByte = Serial.read(); //read next available byte
 
-		if(readByte == 2) reading = true; //begining of tag
+		if(readByte == 2) reading = true; //beginling of tag
 		if(readByte == 3) reading = false; //end of tag
 
 		if(reading && readByte != 2 && readByte != 10 && readByte != 13){
@@ -58,14 +67,14 @@ void loop(){
 			index++;
 		}
 	}
-	
+        
+        delay(100); // seems we require a delay here. idunno.
 	if (index > 0){
-		Serial.println("here");
 		Serial.println(tagString);
 		pingServer(tagString);
 		clearTag(tagString); //Clear the char of all value
 		resetReader(); 		//reset the RFID reader
-	} else {Serial.println("there");}
+	}
 	
 		
 	while (client.available()) {
@@ -73,25 +82,17 @@ void loop(){
 		Serial.print(c);
 	}
 
-	// // if the server's disconnected, stop the client:
-	// if (!client.connected()) {
-		// Serial.println();
-		// Serial.println("disconnecting.");
-		// client.stop();
-
-		// // do nothing forevermore:
-		// for(;;)
-		// ;
-	// }
-	// Serial.print("looped");
 }
 
 void pingServer(char tagString[]){
-	// Make a HTTP request:
-	client.println("GET /openSesame HTTP/1.1");
-	//client.println(tag[]);
-	client.println();
- }
+  // Make a HTTP request:
+  client.print("GET /openSesame?q=");
+  client.print(tagString);
+  client.println(" HTTP/1.1");
+  client.println("User-Agent: arduino-ethernet");
+  // client.println("Connection: close");
+  client.println();
+}
 
 void lightLED(int pin){
 ///////////////////////////////////
