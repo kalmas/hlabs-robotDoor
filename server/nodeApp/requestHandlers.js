@@ -1,6 +1,6 @@
 var exec = require("child_process").exec;
 
-function start(response) {
+function start(query, response) {
   console.log("Request handler 'start' was called.");
   var content = "empty";
 
@@ -13,10 +13,22 @@ function start(response) {
   return content;
 }
 
-function openSesame(response) {
+function openSesame(query, response) {
   console.log("Request handler 'openSesame' was called.");
-  response.writeHead(200, {"Content-Type": "text/plain"});
-  response.write("I'll think about it.");
+  allowed = ["q=123"
+    ,"q=909"
+    ,"q=100"
+    ,"q=4B00DA30B4"
+  ];
+  if(allowed.indexOf(query) > -1){
+    console.log("Request was for " + query + " granted.");
+    response.writeHead(200, {"Content-Type": "text/plain"});
+    response.write('{"access" : "granted"}');
+  } else {
+    console.log("Request was for " + query + " denied.");
+    response.writeHead(401, {"Content-Type": "text/plain"});
+    response.write('{"access" : "denied"}');
+  }
   response.end();
 }
 
